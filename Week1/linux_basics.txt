@@ -1,0 +1,60 @@
+# Linux Basic Questions
+## 1. 
+- Create a folder named `linux_basic` and change directory in it.
+
+mkdir linux_basic
+cd linux_basic
+
+
+## 2. 
+- Create another folder named `dataops` and download the https://raw.githubusercontent.com/erkansirin78/datasets/master/Churn_Modelling.csv dataset into this folder.
+
+mkdir dataops
+cd dataops
+wget https://raw.githubusercontent.com/erkansirin78/datasets/master/Churn_Modelling.csv
+
+
+## 3. 
+- List only files ending with `.conf` in the `/etc` directory.
+
+ls  /etc | grep \\.conf$
+
+
+## 4. 
+- Create a file named `dataops.txt` and put `Hello! DataOps Bootcamp has started.` in it. Read the `dataops.txt` file content.
+
+echo "Hello! DataOps Bootcamp has started." > dataops.txt
+cat dataops.txt
+
+
+## 5. 
+- Create a folder named `yellow`.
+- Change directory to `yellow` folder.
+- Create two files named `red.txt` and `blue.txt` in `yellow` folder.
+- Write `My Name is Red` in the `red.txt`, and `My Name is Blue` in the `blue.txt`.
+- Direct the content of the `red.txt` and append to `blue.txt`.
+- Direct the content of the `blue.txt` and append to `red.txt`. 
+- Copy the `red.txt` and `blue.txt` files to the one level upper directory by changing their names as `red_copied.txt` and `blue_copied.txt`.
+- Install the tree application and examine the tree structure of the `yellow` folder with tree (`tree yellow`)
+
+mkdir yellow
+cd yellow
+touch red.txt
+touch blue.txt
+echo "My Name is Red" > red.txt
+echo "My Name is Blue" > blue.txt
+cat red.txt >> blue.txt
+cat blue.txt >> red.txt
+cp red.txt ../red_copied.txt
+cp  blue.txt ../blue_copied.txt
+tree yellow
+
+
+## 6. 
+- Download the `Wine.csv` file in the https://raw.githubusercontent.com/erkansirin78/datasets/master/Wine.csv repo to `~/datasets` directory.
+- Print the first 15 lines of the `Wine.csv` file to the screen.
+- Filter rows in `Wine.csv` that Alcohol is greater than 14.0
+
+wget https://raw.githubusercontent.com/erkansirin78/datasets/master/Wine.csv
+head -15 Wine.csv
+awk -F, '$1>14.0' Wine.csv

@@ -1,0 +1,54 @@
+# Bash Script Basic Questions
+1. Write a script that takes a directory as an argument and does the following.
+     - Browse all files and folders
+     - Print disk usage of folders.
+
+#!/bin/bash
+
+DIRECTORY=$1
+
+for object in $DIRECTORY/*;do
+        if [[ -d "$object" ]]; then
+                DISK_USAGE=$(du -sh "$object" | awk '{print $1}')
+                echo "$object . Disk usage of folder is: "$DISK_USAGE""
+        else
+                echo "$object ."
+        fi
+done
+
+2.  Write a script that creates a folder/file with numbers `prefix-1, prefix-2, ..... prefix-n ` sequentially named.
+- argument 1: how many folders/files will be created?
+- argument 2: Will a file or folder be created?
+- argument 3: The name to be used in the file/folder prefix.
+Example command and expected output:
+```
+./generate_filenames.sh 5 file myfile
+-rwxr-xr-x. 1 train train 235 Oct 18 17:21 generate_filenames.sh
+-rw-rw-r--. 1 train train   0 Oct 18 17:21 myfile-1
+-rw-rw-r--. 1 train train   0 Oct 18 17:21 myfile-2
+-rw-rw-r--. 1 train train   0 Oct 18 17:21 myfile-3
+-rw-rw-r--. 1 train train   0 Oct 18 17:21 myfile-4
+-rw-rw-r--. 1 train train   0 Oct 18 17:21 myfile-5
+```
+
+#!/bin/bash
+
+COUNT_OBJECT=$1
+TYPE_OBJECT=$2
+PREFIX=$3
+
+for (( i=1; i<=$COUNT_OBJECT; i++ )); do
+        if [[ $TYPE_OBJECT == 'folder' ]]; then
+                mkdir ""$PREFIX"-$i"
+        elif [[ $TYPE_OBJECT == 'file' ]]; then
+                touch ""$PREFIX"-$i"
+        fi
+done
+
+
+3. Write an inline for loop.
+- Sleep for 1 second each cycle
+- Let it loop 10 times
+- Write odd numbers on the screen.
+
+for i in {1..10};do sleep 1; if (( $i%2!=0 )); then echo $i; fi  done
