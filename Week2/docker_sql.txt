@@ -1,0 +1,121 @@
+# Do the following docker and sql relates tasks.
+
+wget "https://raw.githubusercontent.com/erkansirin78/datasets/master/retail_db/customers.csv"
+
+## 1.
+- Create a docker-compose.yaml file that creates mysql and postgresql containers.
+
+docker-compose up -d
+
+## 2. 
+- Create (on both mysql and postgresql) **dataops** db and **dataops_user** user. Grant `dataops_user`with full permissions on `dataops` database.
+
+docker container exec -it mysql_container mysql -u root -p 
+#Password: mysql
+
+# MYSQL
+CREATE DATABASE dataops;
+CREATE USER dataops_user IDENTIFIED BY 'mysql';
+GRANT ALL PRIVILEGES ON dataops.* TO 'dataops_user'@'%';
+\q
+
+# POSTGRES
+
+docker container exec -it postgres_container psql -U postgres
+
+CREATE DATABASE dataops;
+CREATE USER dataops_user WITH ENCRYPTED PASSWORD 'postgres';
+GRANT ALL PRIVILEGES ON DATABASE dataops TO dataops_user;
+\q
+
+## 3. 
+- Create a table in `dataops` db then insert first 5 rows of dataset to **customer** table.
+
+head -6 customers.csv > first_five_rows.csv
+
+# MYSQL
+docker container exec -it mysql_container mysql -u dataops_user -p -D dataops
+#Password: mysql
+
+CREATE TABLE customer(
+	customerId INT PRIMARY KEY,
+	customerFName VARCHAR(255),
+	customerLName VARCHAR(255),
+	customerEmail VARCHAR(255),
+    	customerPassword VARCHAR(255),
+    	customerStreet VARCHAR(255),
+    	customerCity VARCHAR(255),
+    	customerState VARCHAR(255),
+    	customerZipcode VARCHAR(255));
+
+\q
+
+# MYSQL Access Configuration
+touch my.cnf
+>> 
+[mysqld]
+local-infile=1
+secure-file-priv=""
+>>
+docker cp my.cnf mysql_container:/etc/mysql/my.cnf
+docker restart mysql_container
+
+# Sending file to container
+docker cp /home/train/week_2_docker/first_five_rows.csv mysql_container:/tmp/first_five_rows.csv
+
+# Inserting to the table
+docker container exec -it mysql_container mysql --local-infile=1 -u dataops_user -p -D dataops
+
+LOAD DATA LOCAL INFILE '/tmp/first_five_rows.csv' INTO TABLE customer FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
+select * from customer;
+
+# POSTGRES
+docker container exec -it postgres_container psql -U dataops_user -d dataops
+
+CREATE SCHEMA IF NOT EXISTS vbo;
+GRANT ALL PRIVILEGES ON SCHEMA vbo TO dataops_user;
+CREATE TABLE IF NOT EXISTS vbo.customers (
+  customerId INT PRIMARY KEY,
+  customerFName VARCHAR(255),
+  customerLName VARCHAR(255),
+  customerEmail VARCHAR(255),
+  customerPassword VARCHAR(255),
+  customerStreet VARCHAR(255),
+  customerCity VARCHAR(255),
+  customerState VARCHAR(255),
+  customerZipcode VARCHAR(255)
+);
+
+docker cp /home/train/week_2_docker/first_five_rows.csv postgres_container:/tmp/first_five_rows.csv
+
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "\copy vbo.customers from '/tmp/first_five_rows.csv' DELIMITERS ',' CSV HEADER;
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "select * from vbo.customers;"
+
+
+## 4. 
+- Update customerId 3 customerLName Smith as Fox.
+# MYSQL
+docker container exec -it mysql_container mysql -u dataops_user -p -D dataops -e "update customer set customerLName = 'Fox' where customerId = 3;"
+docker container exec -it mysql_container mysql -u dataops_user -p -D dataops -e "select * from customer where customerId = 3;"
+
+# POSTGRES
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "update vbo.customers set customerlname = 'Fox' where customerId=3;"
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "select * from vbo.customers where customerId=3;"
+
+## 5. 
+- Delete customerId 5 (Robert Hudson).
+# MYSQL
+docker container exec -it mysql_container mysql -u dataops_user -p -D dataops -e "delete from customer where customerId=5;"
+docker container exec -it mysql_container mysql -u dataops_user -p -D dataops -e "select * from customer;"
+
+# POSTGRES
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "delete from vbo.customers where customerId=5;"
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "select * from vbo.customers;"
+
+## 6. 
+- SELECT customerFName, customerStreet,customerCity,customerState,customerZipcode where the customerFName is Marry (Mary)
+# MYSQL
+docker container exec -it mysql_container mysql -u dataops_user -p -D dataops -e "select customerFName, customerStreet, customerCity, customerState, customerZipcode from customer where customerFName = 'Mary';"
+
+# POSTGRES
+docker container exec -it postgres_container psql -U dataops_user -d dataops -c "select customerFName, customerStreet, customerCity, customerState, customerZipcode from vbo.customers where customerFName = 'Mary';"
