@@ -1,0 +1,31 @@
+### Q-1: 
+- Setup multinode hadoop with docker compose with docker-compose.yaml file as you see in the class.
+- Download and put `https://raw.githubusercontent.com/erkansirin78/datasets/master/Wine.csv` dataset in hdfs `/user/root/hdfs_odev` directory.
+
+docker login
+docker pull veribilimiokulu/ubuntu_hadoop_hive_sqoop:3.0
+docker-compose up -d
+
+docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}"
+docker logs -f cluster-master
+
+docker exec -it cluster-master bash
+wget "https://raw.githubusercontent.com/erkansirin78/datasets/master/Wine.csv"
+hdfs dfs -mkdir -p /user/root/hdfs_odev
+hdfs dfs -put Wine.csv /user/root/hdfs_odev
+hdfs dfs -head /user/root/hdfs_odev/Wine.csv
+
+### Q-2:
+- Copy this hdfs file `/user/root/hdfs_odev/Wine.csv` to `/tmp/hdfs_odev` hdfs directory.
+hdfs dfs -mkdir -p /tmp/hdfs_odev
+hdfs dfs -cp /user/root/hdfs_odev/Wine.csv /tmp/hdfs_odev
+
+### Q-3:
+- Delete `/tmp/hdfs_odev` directory with skipping the trash. 
+
+hdfs dfs -rm -r -skipTrash /tmp/hdfs_odev
+
+### Q-4:
+-  Explore `/user/root/hdfs_odev/Wine.csv` file from namenode web ui.
+
+-> refer hdfs_namenode.png
