@@ -1,0 +1,86 @@
+# Preparations
+
+### Container initialization
+
+docker-compose up -d
+docker ps --format "{{.ID}}\t{{.Names}}\t{{.Status}}"
+docker logs -f cluster-master
+
+### Hive initialization
+
+docker exec -it cluster-master bash
+schematool -initSchema -dbType postgres
+$HADOOP_HOME/start-hive.sh
+pgrep -f org.apache.hive.service.server.HiveServer2
+pgrep -f org.apache.hadoop.hive.metastore.HiveMetaStore
+
+### Beeline connection
+
+beeline -u jdbc:hive2://localhost:10000
+set hive.server2.logging.operation.level=NONE;
+
+
+# Questions
+
+### Q-1: 
+- Create a hive database `hive_odev` and load this data https://raw.githubusercontent.com/erkansirin78/datasets/master/Wine.csv into `wine` table.
+
+curl -O https://raw.githubusercontent.com/erkansirin78/datasets/master/Wine.csv
+
+hdfs dfs -mkdir -p /user/root/datasets
+hdfs dfs -put Wine.csv /user/root/datasets
+
+CREATE DATABASE IF NOT EXISTS hive_odev;
+USE hive_odev;
+
+CREATE TABLE IF NOT EXISTS wine
+(alcohol float, malic_acid float, ash float, ash_alcanity float, magnesium int, total_phenols float,
+flavanoids float, nonflavanoid_phenols float, proanthocyanins float, color_intensity float, hue float,
+od280 float, proline int, customer_segment int)
+row format delimited
+fields terminated by ','
+lines terminated by '\n'
+stored as textfile
+tblproperties('skip.header.line.count'='1');
+
+load data inpath "/user/root/datasets/Wine.csv" into table wine;
+SELECT * FROM wine limit 5;
+
+
+### Q-2
+- In `wine` table filter records that `Alcohol`greater than 13.00 then insert these records into `wine_alc_gt_13` table.
+
+CREATE TABLE wine_alc_gt_13 as  SELECT * FROM wine WHERE alcohol > 13.00;
+SELECT * FROM wine_alc_gt_13 limit 5;
+
+### Q-3
+- Drop `hive_odev` database including underlying tables in a single command.
+
+DROP DATABASE hive_odev CASCADE;
+
+### Q-4 
+- Load this https://raw.githubusercontent.com/erkansirin78/datasets/master/hive/employee.txt into table `employee` in `company` database. 
+
+curl -O https://raw.githubusercontent.com/erkansirin78/datasets/master/hive/employee.txt
+hdfs dfs -put employee.txt /user/root/datasets
+
+CREATE DATABASE IF NOT EXISTS company;
+USE company;
+
+CREATE TABLE employee
+(name STRING, work_place ARRAY<STRING>, gender_age STRUCT<gender:STRING, age:INT>, skills_score MAP<STRING,INT>)
+row format delimited
+fields terminated by '|'
+collection items terminated by ','
+map keys terminated by ':'
+lines terminated by '\n'
+stored as textfile
+tblproperties ('skip.header.line.count' = '1');
+
+load data inpath '/user/root/datasets/employee.txt' into table employee;
+SELECT * FROM employee;
+
+### Q-5
+- Write a query that returns the employees whose Python skill is greater than 70.
+
+SELECT * FROM employee WHERE skills_score["Python"] > 70;
